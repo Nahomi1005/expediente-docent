@@ -1,0 +1,87 @@
+.App {
+  text-align: center;
+  background-color: #282c34;
+  justify-content: center;
+}
+
+.Container{
+  background: white;
+}
+.App-header {
+  min-height: 4vh;
+  display: flex;
+  flex-direction: column;
+  font-size: calc(5px + 2vmin);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-weight: 600;
+  text-align: right;
+  color: white;
+  letter-spacing: 1px !important;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: 5px;
+  margin-left: auto;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.App-brand{
+  text-align: center;
+  font-weight: 600;
+  font-family: Oswald !important;
+  text-transform: uppercase !important;
+}
+
+.input-file{
+  display: none;
+
+}
+
+.titulo-h1{
+  text-align: center;
+  padding-top: 100px;
+  font-family: Oswald !important;
+  font-weight: bold;
+  font-size: 20px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+}
+
+.texto-centrado-h2{
+  text-align: center;
+  font-family: Oswald !important;
+  font-size: 20px !important;
+}
+
+.texto-centrado{
+  text-align: center;
+  font-family: Oswald !important;
+}
+
+.span-brand{
+  font-family: Oswald !important;
+  font-size: 12px !important;
+}
+
+@media only screen and (min-width: 576px) {
+  .App-header {
+    max-width: 540px;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .App-header {
+    max-width: 720px;
+  }
+}
+@media only screen and (min-width: 992px) {
+  .App-header {
+    max-width: 960px;
+  }
+}
+@media only screen and (min-width: 1200px) {
+  .App-header {
+    max-width: 1140px;
+  }
+}
