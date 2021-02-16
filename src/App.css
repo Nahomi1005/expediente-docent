@@ -36,7 +36,6 @@
 
 .input-file{
   display: none;
-
 }
 
 .titulo-h1{
@@ -52,7 +51,7 @@
 .texto-centrado-h2{
   text-align: center;
   font-family: Oswald !important;
-  font-size: 20px !important;
+  padding-top: 50px;
 }
 
 .texto-centrado{
@@ -60,9 +59,52 @@
   font-family: Oswald !important;
 }
 
+.texto-izq{
+  font-weight: bold;
+  float:left;
+
+}
+
 .span-brand{
   font-family: Oswald !important;
   font-size: 12px !important;
+}
+
+.row{
+  float: left;
+  padding: 60px;
+}
+
+.col {
+  
+  padding-top: 20px;
+  padding-bottom: 20px;
+
+}
+
+.img {
+  display: flex;
+  height: calc(100% - 413px);
+  object-fit: cover;
+}
+
+.divFiles{
+  text-align: left;
+
+}
+
+.btn-Right{
+  margin-bottom: 9.05px;
+  display: inline;
+
+}
+
+.upload-file{
+  text-align: center;
+  display: inline-block;
+  padding: 20px;
+
+
 }
 
 @media only screen and (min-width: 576px) {

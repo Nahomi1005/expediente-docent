@@ -13,7 +13,8 @@
     "react-metamask-login-button": "^1.0.18",
     "react-scripts": "3.4.1",
     "reactstrap": "^8.4.1",
-    "truffle-contract": "^4.0.31"
+    "truffle-contract": "^4.0.31",
+    "webpack": "^4.42.0"
   },
   "scripts": {
     "start": "react-scripts start",
