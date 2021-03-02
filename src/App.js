@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import { Navbar,  NavbarBrand, Nav, NavItem, NavLink, Row, Col, Container} from 'reactstrap';
-import logo from './logo.jpg';
+import brand from './brand.png';
 import ipfs from './ipfs';
 import Curriculum from "./Curriculum.json";
 import Web3 from 'web3';
@@ -15,14 +15,15 @@ class App extends React.Component {
     //Estados para manejar el componente
     this.state = { 
       web3 : null,
-      account: undefined,
+      account: '',
       buffer: null, //Le asignamos un valor inicial  
       ipfsHash: '', //Guardar el IPFSHASH
       contract: null, //Guardar la instancia del contrato
       balance: 0,  //Para mostrar el balance de Metamask
       files: [], //Para getFiles()
       price: [], //Recupera los precios de subir los archivos
-      aspiranteFiles: [] //Recupera los archivos de los aspirantes
+      aspiranteFiles: [], //Recupera los archivos de los aspirantes
+      eliminado : '' //Notificar el nombre del archivo eliminado
     }
 
     this.captureFile = this.captureFile.bind(this); //inputfile-Cargar y formatear el archivo
@@ -52,22 +53,45 @@ class App extends React.Component {
 
       this.load();//Llama a getBalance(), getFiles(), getAspiranteFiles(),
 
-      /*A partir de aquí continuamos con el proceso de guardar
-      el Hash de la IPFS en el contrato*/
-
   }
  
     //Cargamos la libreria de Web3 para interactuar con el contrato
     async loadWeb3(){
-      if (window.ethereum){
-        window.web3 = new Web3(window.ethereum)
-        await window.ethereum.enable()
-      } if (window.web3) {
-          window.web3 = new Web3(window.web3.currentProvider)
-      } else {
-        window.alert('¡No tienes Metamask Instalado!\n Por favor, instala Metamask. https://metamask.io/')
-      }
-      this.setState({web3: window.web3}); //Habilita el web3
+          if (window.ethereum){
+            window.web3 = new Web3(window.ethereum)
+            await window.ethereum.enable()
+
+          } if (window.web3) {
+              window.web3 = new Web3(window.web3.currentProvider)
+          } else {
+            window.alert('¡No tienes Metamask Instalado!\n Por favor, instala Metamask. https://metamask.io/')
+          }
+          this.setState({web3: window.web3}); //Habilita el web3
+
+           //Reiniciar Interfaz, si Hay cambio de cuenta en Metamask
+         window.ethereum.on('accountsChanged', (accounts) => {
+
+                  //Se actualiza el valor de la cuenta
+                  this.setState({account: accounts[0]}, () => {
+                       this.load();
+
+                  });
+
+                  //Cuando se cambia de cuenta, se deja de mostrar los archivos
+                  if (this.state.aspiranteFiles !== []){
+                      this.state.aspiranteFiles = [];
+                  }
+
+                  //Se actualiza el valor del balance
+                 /* window.web3.eth.getBalance(this.state.account,(err,bal)=> {
+                    this.setState({ balance: this.converter(bal) })
+                  })*/
+
+                
+
+
+         });
+         
     }
   
   //Inicializa Web3 para conectar con la Blockchain
@@ -77,6 +101,7 @@ class App extends React.Component {
    const accounts = await web3.eth.getAccounts()
     this.setState({account: accounts[0]})
     console.log(accounts, "CUENTA")
+
 
      //Obtener la red
     const networkId = await web3.eth.net.getId();
@@ -113,6 +138,8 @@ class App extends React.Component {
 
   }
 
+
+
   //Proceso de cargar y formatear el archivo para ser enviado a la red IPFS
   captureFile(event){
     console.log('capture file...');
@@ -124,6 +151,10 @@ class App extends React.Component {
         this.setState({ buffer: Buffer(reader.result)}); //Enviamos el array de datos al Buffer
         console.log('buffer',this.state.buffer);
       }
+
+      //Notificar carga exitosa
+      this.mostrarToast("mitoast");
+
   }
 
   //Enviamos a la IPFS
@@ -134,16 +165,18 @@ class App extends React.Component {
     const ipfsHash = result[0].hash
     this.setState({ipfsHash}); //Hash del resultado
     console.log("ONSUBMIT ", this.state.ipfsHash);
+    
      
     //Cargar archivo 
     this.UpFiles(i);
 
-   
       if(error) {
         console.error(error);
         return
       }
-
+      else{
+        this.setState({ipfsHash: ''}); //Hash del resultado
+      }
 
       //Conectar con la Blockchain para llamar a set de la variable ipfsHash
    /*   this.state.contract.methods.set(ipfsHash).send({from: this.state.account}).then((r) => {
@@ -153,9 +186,12 @@ class App extends React.Component {
      */
     });
 
-   
-
- 
+    /*  //Si se quiere eliminar el botón de Mostrar, se puede llamar desde aquí
+        //El problema que me daba era que al añadir un nuevo archivo, no se mostraba al instante, había que recargar la página
+        //Por este problema, se decidió añadir el botón mostrar
+        //Landeras utiliza 'update' en vez de 'accountChanged' por eso a él le funciona que se actualiza todo
+        this.getAspiranteFiles(); //Obtener los archivos que ha subido el aspirante
+    */
 
   }
 
@@ -205,7 +241,7 @@ class App extends React.Component {
   async load() {
       this.getBalance(); //Cantidad de Ether en la cta de Ethereum
       this.getFiles(); //Desplegar los archivos que va a cargar el aspirante
-      this.getAspiranteFiles(); //Obtener los archivos que ha subido el aspirante
+
      // this.getRefundableEther();
     }
 
@@ -259,6 +295,13 @@ async UpFiles(fileIndex) {
   console.log("UPFILES ", this.state.ipfsHash);
   await this.expedienteService.UpFiles(fileIndex, this.state.account, this.state.ipfsHash);
 
+  //Reinicia el balance y reinicia la lista de archivos del aspirante
+  this.load();
+  this.getAspiranteFiles();
+
+  //Notificar de envío exitoso
+  this.mostrarToast("mitoastEnviado");
+
 }
 
 //Obtener los archivos de los aspirantes
@@ -271,15 +314,37 @@ async getAspiranteFiles(){
   console.log("aspiranteFiles: ", this.state.aspiranteFiles);
 }
 
-//Obtener un archivo específico de un aspirante
-async getOneFile(account, i){
-  let ipfsHash = await this.expedienteService.getOneFile(account, i);
+//Ocultar los archivos de un aspirante
+async ocultarFiles(){
   this.setState({
-    ipfsHash
+    aspiranteFiles: []
   });
 
-  console.log(this.state.ipfsHash, "GETONEFILE APP");
-  console.log(ipfsHash, "GETONEFILE APP");
+  console.log(this.state.aspiranteFiles, "OCULTAR");
+}
+
+//Eliminar un archivo
+async deleteFile (account, index) {
+
+  let file = await this.expedienteService.deleteFile(account, index);
+  console.log(file.name + 'Archivo Eliminado');
+
+  //Notificar eliminado exitoso
+  this.mostrarToast("mitoastEliminado");
+  this.setState({eliminado : this.state.files[index].name})
+
+  //Reinicia el balance y la lista de archivos del aspirante
+  this.load();
+  this.getAspiranteFiles();
+
+}
+
+//Eventos
+// Con esta función se muestra el Toast 
+async mostrarToast(id) {
+  var toast = document.getElementById(id);
+  toast.className = "mostrar";
+  setTimeout(function(){ toast.className = toast.className.replace("mostrar", ""); }, 5000);
 }
 
 render() {
@@ -287,7 +352,7 @@ render() {
         <div className="App">
 
               {/* Header de la Web*/}
-              <header className="App-header" >
+              <header className="App-header" id="account-address">
                    <meta name="viewport" content="width=device-width, user-scalable=no" />
                         Cuenta: {this.state.account} 
               </header>
@@ -295,11 +360,56 @@ render() {
              {/* Cuerpo de la Web*/}
               <div className= "Container">
 
+                      {/*EVENTOS*/}
+
+                              {/*Evento para alertar de carga efectiva*/}
+                               <div class="alert alert-success" role="alert" id="mitoast" aria-live="assertive" aria-atomic="true" className="toast">
+
+                                        <div class="toast-header">
+      
+                                        {/*Icono / Logo de la Aplicación */}
+                                           <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                        {/*Nombre del evento */} 
+                                           <strong>&nbsp;¡Exitosamente Cargado!&nbsp;</strong>
+                                        </div>  
+
+                                </div>
+
+                                {/*Evento para notificar de archivo eliminado*/}
+                               <div class="alert alert-success" role="alert" id="mitoastEliminado" aria-live="assertive" aria-atomic="true" className="toast">
+                                          <div class="toast-header">
+      
+                                                {/*Icono / Logo de la Aplicación */}
+                                                  <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                                {/*Nombre del evento */} 
+                                                  <strong>&nbsp;¡Archivo Eliminado!&nbsp;</strong>
+                                           </div>  
+                                   {/*<strong>{this.state.eliminado}</strong>*/}
+                                </div>
+
+                                {/*Evento para alertar de envío al contrato*/}
+                               <div class="alert alert-success" role="alert" id="mitoastEnviado" aria-live="assertive" aria-atomic="true" className="toast">
+
+                                      <div class="toast-header">
+
+                                            {/*Icono / Logo de la Aplicación */}
+                                            <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                            {/*Nombre del evento */} 
+                                            <strong>&nbsp;¡Enviado a la Red!&nbsp;</strong>
+                                      </div>  
+
+</div>
+
+                      {/*PRINCIPAL */}
+
                        {/* Menu principal de la Web*/}
                         <Navbar color="light" light expand="md">
 
                                 {/* Logo de la Web*/}
-                                <NavbarBrand href="/" className="App-brand"> <img src={logo} alt="Uneg" className="img-fluid"/>
+                                <NavbarBrand href="/" className="App-brand"> <img src={brand} alt="Uneg" className="img-fluid logo"/>
                                     <span className="span-brand">{' '}</span>
                                 </NavbarBrand>
 
@@ -318,21 +428,22 @@ render() {
                                         <p className= "texto-centrado">Estas credenciales se encontrarán en la red IPFS y la red de Ethereum</p>
                                         
                                         {/* Recuperar el archivo con el hash de la IPFS*/}
-                                        <img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt=""/>
+                                       {/*<img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt=""/>*/} 
 
                                         <h6 className= "texto-centrado-h2"><strong>Ingrese la información solicitada a continuación:</strong></h6>
                                   </div>
                             </div>
 
 
-                        <Container fluid="md">
+                        <Container className="container-fluid" >
 
-                            
+                            {/*Plantilla de cargar, ver, eliminar archivos del expediente */}
                             <Row className= "row">
                                 <Col sm className= "col"> 
 
                                       {/* Recuperar el balance de la cuenta*/}
                                       <span><strong>Balance: </strong> {this.state.balance} <strong>ETH</strong></span>
+
                                 </Col>
                             </Row>
 
@@ -348,16 +459,15 @@ render() {
 
                                             {this.state.files.map((file, i) => {
 
-                                                  return <div key = {i}> {/* El índice identifica cada <div> con Key*/} 
-
-                                                              <span className= "texto-izq">{file.name} - cost: {this.converter(file.price)} </span>
-
-                                                              <div>
-                                                                    <label htmlFor="inputFile" className="btn btn-light btn-outline-primary btn-sm">Cargar</label>
-                                                                    <input type='file' id="inputFile" className="input-file" onChange={this.captureFile} />
-                                                                    <button className="btn btn-light btn-outline-secondary btn-sm btn-Right" onClick={(event) => this.onSubmit(event, i)}>Enviar</button>
-                                                      
-                                                              </div>
+                                                  return <div  key = {i}> {/* El índice identifica cada <div> con Key*/} 
+                                                            
+                                                             
+                                                             <div className= "divFiles-in">
+                                                                    <span className= "texto-izq">{file.name} {/*- cost: {this.converter(file.price)} */}</span>
+                                                                    <label htmlFor="inputFile" className="btn btn-light btn-outline-primary btn-sm btn-css">Cargar</label>
+                                                                    <input type='file' id="inputFile" className="input-file" onChange={(event) => this.captureFile(event)} />
+                                                                    <button className="btn btn-light btn-outline-secondary btn-sm btn-css" onClick={(event) => this.onSubmit(event, i)}>Enviar</button>                                   
+                                                             </div>
 
                                                           </div>
 
@@ -365,20 +475,33 @@ render() {
                                                   })}
                                                   
                                       </div>
+                                      
                                   </Col>
                            </Row>
-                                
-                            <Row className= "row">
-                                       <Col sm  className= "col">
-                                            
+ 
+                            <Row className= "row ">
+
+                                       <Col sm  className= "col divFiles-in-R">
+                                       
                                             {this.state.aspiranteFiles.map((file, i) => {
-                                                    return <div key = {i}>
-                                                            {/*<button className="btn btn-light btn-outline-secondary btn-sm btn-Right" onClick={(event) => this.getOneFile(this.state.account, i)}>Mostrar</button>*/}
-                                                            {file.name} - cost: {this.converter(file.price)} ETH - hash: <img className = "img" src={`https://ipfs.io/ipfs/${file.hashFile}`} alt=""/>
+                                                    return <div key = {i} className= "divFiles-in divFiles-in-R-div"> 
+                                                            {file.name} {/*- cost: {this.converter(file.price)} ETH - hash: */}
+                                                            <img className= "img-R" src={`https://ipfs.io/ipfs/${file.hashFile}`} alt=""/>
+                                                            <button className="btn btn-light btn-outline-danger btn-sm btn-Right" onClick={() => this.deleteFile(this.state.account, i)}>Eliminar</button>
                                                     </div>
                                              })}
 
                                         </Col>
+
+                            </Row>
+
+                            <Row>
+
+                              <Col>
+                              <button className="btn btn-light btn-outline-success btn-sm btn-css" onClick={(event) => this.getAspiranteFiles()}>Mostrar</button>
+                              <button className="btn btn-light btn-outline-secondary btn-sm btn-css" onClick={(event) => this.ocultarFiles()}>Ocultar</button>
+                              </Col>
+
                             </Row>
 
                         </Container>

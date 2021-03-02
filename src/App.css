@@ -34,6 +34,11 @@
   text-transform: uppercase !important;
 }
 
+.logo{
+  width: 40px;
+  margin-left: 20px;
+}
+
 .input-file{
   display: none;
 }
@@ -51,7 +56,7 @@
 .texto-centrado-h2{
   text-align: center;
   font-family: Oswald !important;
-  padding-top: 50px;
+  padding-bottom: 20px;
 }
 
 .texto-centrado{
@@ -70,32 +75,67 @@
   font-size: 12px !important;
 }
 
-.row{
+/*.row{
   float: left;
   padding: 60px;
-}
+  background: chartreuse;
+  width: 100%;
+  margin:0%;
+}*/
 
 .col {
-  
-  padding-top: 20px;
-  padding-bottom: 20px;
+  background: #6495ed;
+  border: cyan;
+  padding: 10px;
+  border-style: solid;
+  border-radius: 2px;
+  border-width: thin;
 
 }
 
-.img {
+.col-1{
+  background:green;
+}
+
+.seccion{
   display: flex;
-  height: calc(100% - 413px);
-  object-fit: cover;
+}
+
+.img-R {
+  max-width: 300px;
+  min-height:200px;
+  max-height: 200px;
+  
+}
+
+.divFiles-in-R{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  
 }
 
 .divFiles{
-  text-align: left;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  
+}
+
+.divFiles-in-R-div {
+  padding: 10px;
 
 }
 
-.btn-Right{
-  margin-bottom: 9.05px;
-  display: inline;
+.divFiles-in{
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-css{
+  width: 150px;
 
 }
 
@@ -126,4 +166,57 @@
   .App-header {
     max-width: 1140px;
   }
+}
+
+/*Eventos*/
+#mitoast, #mitoastEliminado, #mitoastEnviado{
+  visibility: hidden;
+  position: fixed;
+  z-index: 1;
+  left: 40%;
+  top: 5%;
+  border-color: #28a745;
+  color: #ffff;
+  padding: .20rem .2rem;
+  border-radius: .40rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,.1);
+  max-width: 310px;
+  margin: 2%;
+  width: 250px;
+  background-color: #28a745;
+  letter-spacing: 1px !important;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  opacity: 1;
+}
+
+#mitoastEliminado{
+  border-color: #28a745;
+  background-color: #28a745;
+}
+
+#mitoast.mostrar, #mitoastEliminado.mostrar, #mitoastEnviado.mostrar{
+  visibility: visible;
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 4.6s;
+  animation: fadein 0.5s, fadeout 0.5s 4.6s;
+}
+
+ 
+@-webkit-keyframes fadein {
+  from {right: 0; opacity: 0;} 
+  to {right: 2.5%; opacity: 1;}
+}
+ 
+@keyframes fadein {
+  from {right: 0; opacity: 0;}
+  to {right: 2.5%; opacity: 1;}
+}
+ 
+@-webkit-keyframes fadeout {
+  from {right: 2.5%; opacity: 1;} 
+  to {right: 0; opacity: 0;}
+}
+ 
+@keyframes fadeout {
+  from {right: 2.5%; opacity: 1;}
+  to {right: 0; opacity: 0;}
 }

@@ -63,16 +63,10 @@ export class ExpedienteService {
           return this.mapFiles(files);
     }
 
-    async getOneFile(account, i){
+   async deleteFile (account, index){
 
-      let file = await this.contract.methods.aspiranteFiles(account, i).call();
-
-        console.log (file.hashFile, "GETONEFILE");
-
-        return file.ipfsHash;
-
-    }
-
-
+    let fileDeleted = await (this.contract.methods.deleteFile(account,index).send({from: account}));
+    return fileDeleted;
+   }
 
 }
