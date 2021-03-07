@@ -76,15 +76,15 @@ contract Curriculum {
      //Relaciona la dirección de un Aspirante con el nro de archivos que tiene en su expediente
      mapping (address => uint) public aspiranteTotalFiles;
 
-    event FilePurchased(address indexed aspirante, uint price);
+    event FilePurchased(address indexed aspirante);
 
     constructor() public {
         owner = msg.sender; //La persona que despliega el contrato
 
         //Inicializamos los archivos que puede almacenar en el expediente docente
         files.push(Files('Foto Carnet', 1 ether, 'x'));
-        files.push(Files('Cedula', 3 ether, 'x'));
-        files.push(Files('Titulos', 2 ether, 'x'));
+        files.push(Files('Cédula', 3 ether, 'x'));
+        files.push(Files('Títulos', 2 ether, 'x'));
         files.push(Files('Certificados', 1 ether, 'x'));
         files.push(Files('Calificaciones', 1 ether, 'x'));
     }
@@ -102,7 +102,7 @@ contract Curriculum {
         aspiranteFiles[msg.sender].push(file); //Guardamos el Archivo actualizado en mapping asociado al address del Aspirante
         aspiranteTotalFiles[msg.sender]++; //Almacenamos en el arreglo de Address con Nro de Archivos por Aspirante
 
-      emit FilePurchased(msg.sender, file.price);
+      emit FilePurchased(msg.sender);
     }
     
     
@@ -112,13 +112,23 @@ contract Curriculum {
     }
     
     
-    //Cambiar LoyaltyPointsenDivisa
-    function redeemLoyaltyPoints() public { 
-        Aspirante storage aspirante = aspirantes[msg.sender];
-        uint etherToRefund = etherPerPoint * aspirante.loyaltyPoints;
-        msg.sender.transfer(etherToRefund);
-        aspirante.loyaltyPoints = 0;
+    //Eliminar un archivo del aspirante
+    function deleteFile(address account, uint index) public returns(string memory) {
 
+            uint lengthArray = aspiranteTotalFiles[account];
+        
+        if (index <= lengthArray){
+
+                Files storage element = aspiranteFiles[account][index];
+                aspiranteFiles[account][index] = aspiranteFiles[account][lengthArray-1];
+                delete aspiranteFiles[account][lengthArray-1];
+                aspiranteTotalFiles[account]--;
+                aspiranteFiles[account].length--;
+                return element.name;
+        }
+        else return 'Error';
+
+       
     }
 
 

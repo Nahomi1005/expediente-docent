@@ -63,10 +63,54 @@ export class ExpedienteService {
           return this.mapFiles(files);
     }
 
+    //Eliminar un archivo del expediente del aspirante
    async deleteFile (account, index){
 
-    let fileDeleted = await (this.contract.methods.deleteFile(account,index).send({from: account}));
-    return fileDeleted;
+    console.log("CONTRATOOO EXPEDIENTE", this.contract);
+    return await (this.contract.methods.deleteFile(account,index).send({from: account}));
    }
+
+   //LOGIN
+
+        //REGISTRO de usuario
+
+            //Registro del usuario por primera vez
+            async join (name, email, password, account){
+                    return await (this.contract.methods.join(name, email, password).send({from: account}).then((r) => {
+                        console.log( "JOINEEED");
+                        }));
+            }
+
+            //Comprueba que el usuario se ha unido antes
+            async userJoined(address){
+                    let joined = await (this.contract.methods.userJoined(address)).call();
+                    console.log(joined, "Joined expedienteService");
+                    return joined;
+            }
+
+            //Elimina un usuario del historial (Sin eliminar sus archivos)
+            async deleteUser(account) {
+
+                    let userDeleted = await (this.contract.methods.deleteUser(account).send({from: account}).then((r) => {
+                        console.log("Usuario Eliminado");
+                    }));
+
+                    return userDeleted;
+
+            }
+
+            //Retorna la cantidad de usuarios registrados
+            async totalUsers(){
+                let totalUsers = await(this.contract.methods.totalUsers()).call();
+                return totalUsers;
+            }
+
+        //INICIO DE SESIÓN
+        async login(account){
+
+            let user = await(this.contract.methods.getUser(account)).call();
+            return user;
+
+        }
 
 }

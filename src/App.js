@@ -1,11 +1,13 @@
 import React from 'react';
-import './App.css';
+import './App.scss';
 import { Navbar,  NavbarBrand, Nav, NavItem, NavLink, Row, Col, Container} from 'reactstrap';
 import brand from './brand.png';
 import ipfs from './ipfs';
 import Curriculum from "./Curriculum.json";
+import Aspirante from "./Aspirante.json"
 import Web3 from 'web3';
 import {ExpedienteService} from "./expedienteService.js";
+import { Login, Register } from "./login/index";
 
 class App extends React.Component {
 
@@ -18,12 +20,13 @@ class App extends React.Component {
       account: '',
       buffer: null, //Le asignamos un valor inicial  
       ipfsHash: '', //Guardar el IPFSHASH
-      contract: null, //Guardar la instancia del contrato
+      contract: null, //Guardar la instancia del contrato Curriculum
+      aspirante: null, //Guardar la instancia del contrato Aspirante
       balance: 0,  //Para mostrar el balance de Metamask
       files: [], //Para getFiles()
       price: [], //Recupera los precios de subir los archivos
       aspiranteFiles: [], //Recupera los archivos de los aspirantes
-      eliminado : '' //Notificar el nombre del archivo eliminado
+      isLogginActive: true //Login
     }
 
     this.captureFile = this.captureFile.bind(this); //inputfile-Cargar y formatear el archivo
@@ -43,8 +46,15 @@ class App extends React.Component {
     await this.loadWeb3();
     await this.loadBlockchainData();
 
-    //Llama a los métodos del contrato
+    //login
+    //Add .right by default
+    this.rightSide.classList.add("right");
+
+    //Llama a los métodos del contrato Curriculum
     this.expedienteService = new ExpedienteService(this.state.contract);
+    
+    ////Llama a los métodos del contrato Aspirante
+    this.expedienteServiceA = new ExpedienteService(this.state.aspirante);
 
     /*Hacemos una Sección aquí para llamar a las funciones
       que tienen que ver con la interfaz de usuario
@@ -81,63 +91,76 @@ class App extends React.Component {
                   if (this.state.aspiranteFiles !== []){
                       this.state.aspiranteFiles = [];
                   }
-
-                  //Se actualiza el valor del balance
-                 /* window.web3.eth.getBalance(this.state.account,(err,bal)=> {
-                    this.setState({ balance: this.converter(bal) })
-                  })*/
-
-                
-
-
          });
          
     }
   
   //Inicializa Web3 para conectar con la Blockchain
+  //Creamos instancia del contrato Curriculum
   async loadBlockchainData() { 
-    //Obtener la cuenta
+    
+  //Tenemos we3
    const web3 = window.web3;
+
+   //Obtener la cuenta
    const accounts = await web3.eth.getAccounts()
     this.setState({account: accounts[0]})
     console.log(accounts, "CUENTA")
 
 
-     //Obtener la red
+     //Obtener la networkID
     const networkId = await web3.eth.net.getId();
     console.log(networkId)
 
-    const networkData = Curriculum.networks[networkId];
-    console.log(networkData, "RED")
+        //Obtener la network Curriculum
+        const networkData = Curriculum.networks[networkId];
+        console.log(networkData, "RED CURRICULUM")
+
+        //Obtener la network Aspirante
+        const networkDataA = Aspirante.networks[networkId];
+        console.log(networkDataA, "RED ASPIRANTE");
     
-    if (networkData) {
-      //Obtener abi
+    //Si se obtienen
+    if (networkData && networkDataA) {
+      //Obtener abi Curriculum
       const abi = Curriculum.abi
-      console.log(abi, "ABI")
+      console.log(abi, "ABI CURRICULUM");
+
+      //Obtener abi Aspirante
+      const abiA = Aspirante.abi
+      console.log(abiA, "ABI ASPIRANTE");
   
-      //Obtener la dirección
+      //Obtener la dirección Curriculum
       const address = networkData.address
-      console.log(address, "DIRECCION DEL CONTRATO")
+      console.log(address, "DIRECCION DEL CONTRATO CURRICULUM");
+
+      //Obtener la dirección Aspirante
+      const addressA = networkDataA.address
+      console.log(addressA, "DIRECCION DEL CONTRATO ASPIRANTE");
 
 
-      //Fetch Contrato
+      //Fetch Contrato Curriculum
      const contract = new web3.eth.Contract(abi, address)//Creamos una instancia del contrato
 
       this.setState({contract})//Guardamos en el estado, la instancia del contrato
 
+      //Fetch Contrato Aspirante
+     const aspirante = new web3.eth.Contract(abiA, addressA)//Creamos una instancia del contrato
 
-    // const ipfsHash = await contract.methods.get().call()//Llamamos al método get() del contrato
+     this.setState({aspirante})//Guardamos en el estado, la instancia del contrato
 
-     //this.setState({ipfsHash})//Guardamos lo que recuperamos del contrato en el estado
+      /*Esta parte comentada es para cuando se manejaba en el contrato un único hashipfs */
+          // const ipfsHash = await contract.methods.get().call()//Llamamos al método get() del contrato
 
-      console.log(this.state.ipfsHash, "LOADBLOCKCHAINDATA");
+          //this.setState({ipfsHash})//Guardamos lo que recuperamos del contrato en el estado
+
+          //console.log(this.state.ipfsHash, "LOADBLOCKCHAINDATA");
 
     } else {
         window.alert('El Smart Contract no ha sido desplegado en la red.')
     }
 
   }
-
 
 
   //Proceso de cargar y formatear el archivo para ser enviado a la red IPFS
@@ -179,11 +202,11 @@ class App extends React.Component {
       }
 
       //Conectar con la Blockchain para llamar a set de la variable ipfsHash
-   /*   this.state.contract.methods.set(ipfsHash).send({from: this.state.account}).then((r) => {
-          this.setState({ ipfsHash})
-      })
-     console.log(this.state.ipfsHash + " IPFSHASH");
-     */
+      /*   this.state.contract.methods.set(ipfsHash).send({from: this.state.account}).then((r) => {
+              this.setState({ ipfsHash})
+          })
+        console.log(this.state.ipfsHash + " IPFSHASH");
+        */
     });
 
     /*  //Si se quiere eliminar el botón de Mostrar, se puede llamar desde aquí
@@ -217,7 +240,6 @@ class App extends React.Component {
       price.push(this.converter(fileprice)); //Llenamos los precios de los archivos en ether 
     
   /*   
-
       //Esta fracción de código hay que colocarlo en el render para mostrar los precios
           <div>
                 {this.state.price.map((price,i) => {
@@ -247,6 +269,7 @@ class App extends React.Component {
 
  /* 
  //FormularioViejo: El formulario general para cargar y enviar archivos a la nube IPFS
+ //Se usaba cuando se manejaba un solo hashIpfs
  <form className= "texto-centrado" onSubmit={this.onSubmit}>
           <label htmlFor="inputFile" className="btn btn-light btn-outline-primary btn-sm">Subir Archivos</label>
           <input type='file' id="inputFile" className="input-file" onChange={this.captureFile} />
@@ -339,7 +362,13 @@ async deleteFile (account, index) {
 
 }
 
-//Eventos
+//¿Cuántos usuarios hay registrados?
+async totalUsers(){
+  let totalUsers = await(this.expedienteServiceA.totalUsers());
+  console.log(totalUsers, "Cantidad de Usuarios");
+}
+
+//EVENTOS
 // Con esta función se muestra el Toast 
 async mostrarToast(id) {
   var toast = document.getElementById(id);
@@ -347,7 +376,24 @@ async mostrarToast(id) {
   setTimeout(function(){ toast.className = toast.className.replace("mostrar", ""); }, 5000);
 }
 
+//LOGIN
+changeState() {
+  const { isLogginActive } = this.state;
+
+  if (isLogginActive) {
+    this.rightSide.classList.remove("right");
+    this.rightSide.classList.add("left");
+  } else {
+    this.rightSide.classList.remove("left");
+    this.rightSide.classList.add("right");
+  }
+  this.setState(prevState => ({ isLogginActive: !prevState.isLogginActive }));
+}
+
 render() {
+  const { isLogginActive } = this.state;
+  const current = isLogginActive ? "Registrar" : "Acceder";
+    const currentActive = isLogginActive ? "login" : "register";
       return (
         <div className="App">
 
@@ -359,7 +405,7 @@ render() {
 
              {/* Cuerpo de la Web*/}
               <div className= "Container">
-
+              
                       {/*EVENTOS*/}
 
                               {/*Evento para alertar de carga efectiva*/}
@@ -401,8 +447,8 @@ render() {
                                             <strong>&nbsp;¡Enviado a la Red!&nbsp;</strong>
                                       </div>  
 
-</div>
-
+                                </div>
+                      
                       {/*PRINCIPAL */}
 
                        {/* Menu principal de la Web*/}
@@ -415,13 +461,35 @@ render() {
 
                                 {/* Enlaces Internos de la Web*/}
                                 <Nav className="ml-auto" navbar>
+
+                                    {/*Eliminar Usuario */}
+                                    {/*<NavItem>
+                                        <NavLink href="#" onClick={() => this.deleteUser(this.state.account)}> Reiniciar Usuario</NavLink>
+                                    </NavItem>*/}
+
+                                    {/*Cantidad de Usuarios */}
                                     <NavItem>
-                                        <NavLink href="/"></NavLink>
+                                        <NavLink href="#" onClick={() => this.totalUsers()}> Usuarios</NavLink>
                                     </NavItem>
+                                  
                                 </Nav>
                         </Navbar> 
 
-                            {/* Página Principal*/}
+                        {/*LOGIN de la página*/}
+                        <div className = "App-login">
+                                <div className = "login">
+                                      <div className = "containerLogin" ref={ref => (this.container = ref)}>
+                                          {isLogginActive && (<Login containerRef={ref => (this.current = ref)} />)}
+                                          {!isLogginActive && (<Register containerRef={ref => (this.current = ref)} />)}
+                                      </div>
+                                      <RightSide current={current} currentActive={currentActive} containerRef={ref => 
+                                      (this.rightSide = ref)} onClick={this.changeState.bind(this)}/>
+                                
+                                </div>
+                        </div>
+                            {/*LOGIN de la página*/}
+
+                            {/* Sección Principal*/}
                             <div className="pure-g">
                                   <div className= "pure-u-1-1">
                                         <h1 className= "titulo-h1">Registro del Expediente Docente</h1>
@@ -433,7 +501,6 @@ render() {
                                         <h6 className= "texto-centrado-h2"><strong>Ingrese la información solicitada a continuación:</strong></h6>
                                   </div>
                             </div>
-
 
                         <Container className="container-fluid" >
 
@@ -515,5 +582,19 @@ render() {
 }
 
 }
+
+const RightSide = props => {
+  return (
+    <div
+      className="right-side"
+      ref={props.containerRef}
+      onClick={props.onClick}
+    >
+      <div className="inner-container">
+        <div className="text">{props.current}</div>
+      </div>
+    </div>
+  );
+};
 
 export default App;

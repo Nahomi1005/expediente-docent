@@ -4,7 +4,7 @@ contract Aspirante {
 
     address public owner; //Almacena la dirección actual.
 
-     struct FormacionUniversitaria{
+   /*  struct FormacionUniversitaria{
         string place;
         string date;
     }
@@ -30,17 +30,17 @@ contract Aspirante {
         string language;
         string level;
     }
-
+*/
     struct Aspirantes {
         //Datos para registrarse
         string name; //Nombre
-        string surName; // Apellido
-        string direction; // Direccion
-        string identifier; //Cedula
-        string phone; // Telefono
         string email; //Correo
-        uint loyaltyPoints; // Puntos del Usuario
-        FormacionUniversitaria[] studies;
+        string password; //Password
+        //string surName; // Apellido
+        //string direction; // Direccion
+       // string phone; // Telefono
+        //uint loyaltyPoints; // Puntos del Usuario
+        //FormacionUniversitaria[] studies;
         //ExperienciaDocente[] docente;
         // ExperienciaNoDocente[] noDocente;
         //Cursos[] cursos;
@@ -48,7 +48,7 @@ contract Aspirante {
 
     }
 
-    FormacionUniversitaria[] public formacion;
+    //FormacionUniversitaria[] public formacion;
 
     constructor() public{
         owner = msg.sender;
@@ -63,35 +63,30 @@ contract Aspirante {
     event onUserJoined(address,string);
 
     //Ejecuta para ingresar un nuevo aspirante.
-    function join(string memory name, string memory surName, string memory direction,
-                    string memory identifier,string memory phone, string memory email) public {
+    function join(string memory name, string memory email, string memory password) public {
         require(!userJoined(msg.sender), "User Joined");
         Aspirantes storage user = users[msg.sender];
 
         //Se asignan los valores ingresados a las variables.
         user.name = name;
-        user.surName = surName;
-        user.direction = direction;
-        user.identifier = identifier;
-        user.phone = phone;
+        user.password = password;
         user.email = email;
         joinedUsers[msg.sender] = true; //Dirección del usuario ya se ha registrado.
         total.push(msg.sender);
 
         //Activa el evento que alerta creación de usuario.
-       emit onUserJoined(msg.sender, string(abi.encodePacked(name, " ", surName)));
+       emit onUserJoined(msg.sender, string(abi.encodePacked(name, " ", email)));
     }
 
     //Leer del mapping un usuario y devolver sus datos.
-    function getUser(address addr) public view returns (string memory, string memory,
-                                                         string memory, string memory, string memory, string memory) {
+    function getUser(address addr) public view returns (string memory, string memory, string memory) {
         require(userJoined(msg.sender), "User Joined");
         Aspirantes memory user = users[addr];
-        return (user.name, user.surName, user.direction, user.identifier, user.phone, user.email );
+        return (user.name, user.email, user.password);
     }
 
     //Verifica si el usuario existe, antes de crearlo o mostrarlo.
-    function userJoined(address addr) private view returns (bool) {
+    function userJoined(address addr) public view returns (bool) {
         return joinedUsers[addr];
     }
 
@@ -100,5 +95,19 @@ contract Aspirante {
         return total.length;
     }
 
+    function deleteUser(address addr) public {
+        delete users[addr];
+        joinedUsers[addr] = false;
+
+        for(uint i = 0; i < total.length; i++){
+
+            if (total[i] == addr){
+                    total[i] = total[total.length-1];
+                    delete total[total.length-1];
+                    total.length--;
+            }
+        }
+
+    }
 
 }
