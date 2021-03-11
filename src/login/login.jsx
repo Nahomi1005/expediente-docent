@@ -114,14 +114,21 @@ export class Login extends React.Component {
       setTimeout(function(){ toast.className = toast.className.replace("mostrar", ""); }, 5000);
     }
 
+    // Con esta función se muestra el Toast 
+    async visible(id) {
+      var panel = document.getElementById(id);
+      panel.className = "visible";
+    }
+
+//INPUT
     //Manejo de input name
     handleName(e) {
-      this.setState({name: e.target.value.toUpperCase()}) 
+      this.setState({name: e.target.value.toUpperCase()}); 
     }
 
     //Manejo de input password
     handlePassword(e) { 
-      this.setState({password: e.target.value.toUpperCase()}) 
+      this.setState({password: e.target.value.toUpperCase()}); 
     }
 
     //onSubmit Formulario
@@ -137,7 +144,25 @@ export class Login extends React.Component {
     async login(name, password, account){
       let user = await (this.expedienteService.login(account));
       if ((user[0] === name) && (user[2] === password)){
+
+        //Notificamos que los datos han sido correctos
         this.mostrarToast("mitoastLoginOn");
+
+        //Limpiamos los campos
+        this.limpiarCampos("name");
+        this.limpiarCampos("password");
+      
+        //Ocultamos el login
+        this.ocultarLogin("loginApp");
+
+        //Mostramos la siguiente interfaz
+        this.visible("archivos");
+        this.visible("archivosMembrete");
+        this.visible("sesionCerrada");
+
+        //Limpiamos los estados
+        this.setState({name: ''});
+        this.setState({password: ''});
         return true;
         
       }
@@ -148,69 +173,26 @@ export class Login extends React.Component {
 
     //Eliminar un usuario
     async deleteUser(account){
-    await (this.expedienteService.deleteUser(account));
+        await (this.expedienteService.deleteUser(account));
 
-    //Notificar que se ha eliminado
-    this.mostrarToast("mitoastUserEliminado");
-  }
+        //Notificar que se ha eliminado
+        this.mostrarToast("mitoastUserEliminado");
+     }
+
+      //Ocultar Secciones
+     async ocultarLogin(id) {
+      var panel = document.getElementById(id);
+      panel.className = "ocultar";
+    }
+
+    async limpiarCampos(id){
+      var panel = document.getElementById(id);
+      panel.value = '';
+    }
 
   render() {
     return (
       <div className="base-container" ref={this.props.containerRef}> {/*Contenedor externo*/}
-
-        {/*EVENTOS*/}
-
-                {/*Evento para alertar de carga efectiva*/}
-                <div class="alert alert-success" role="alert" id="mitoastRegistrado" aria-live="assertive" aria-atomic="true" className="toast">
-
-                        <div class="toast-header">
-
-                            {/*Icono / Logo de la Aplicación */}
-                            <img src={brand} width="20" height="20"  alt="Uneg"/>
-
-                            {/*Nombre del evento */} 
-                            <strong>&nbsp;¡Registrado!&nbsp;</strong>
-                        </div>  
-                </div>
-
-                 {/*Evento para alertar de carga efectiva*/}
-                 <div class="alert alert-success" role="alert" id="mitoastLoginOn" aria-live="assertive" aria-atomic="true" className="toast">
-
-                          <div class="toast-header">
-
-                                {/*Icono / Logo de la Aplicación */}
-                                <img src={brand} width="20" height="20"  alt="Uneg"/>
-
-                                {/*Nombre del evento */} 
-                                <strong>&nbsp;¡Iniciando Sesión!&nbsp;</strong>
-                          </div>  
-                </div>
-
-                {/*Evento para alertar de carga efectiva*/}
-                <div class="alert alert-success" role="alert" id="mitoastLoginWrong" aria-live="assertive" aria-atomic="true" className="toast">
-
-                            <div class="toast-header">
-
-                                  {/*Icono / Logo de la Aplicación */}
-                                  <img src={brand} width="20" height="20"  alt="Uneg"/>
-
-                                  {/*Nombre del evento */} 
-                                  <strong>&nbsp;¡Datos Equivocados!&nbsp;</strong>
-                            </div>  
-                </div>
-
-                 {/*Evento para notificar de Usuario eliminado*/}
-                 <div class="alert alert-success" role="alert" id="mitoastUserEliminado" aria-live="assertive" aria-atomic="true" className="toast">
-                              <div class="toast-header">
-      
-                                     {/*Icono / Logo de la Aplicación */}
-                                     <img src={brand} width="20" height="20"  alt="Uneg"/>
-
-                                      {/*Nombre del evento */} 
-                                      <strong>&nbsp;Perfecto ¡Registre Ahora!&nbsp;</strong>
-                              </div>  
-                              {/*<strong>{this.state.eliminado}</strong>*/}
-                 </div>
 
         {/*Header del Login*/}
         <div className="header"></div>
@@ -229,13 +211,13 @@ export class Login extends React.Component {
               {/*Input name*/}
               <div className="form-group">
                 <label htmlFor="username">Usuario</label>
-                <input type="text" name="username" placeholder="usuario" onChange={(e)=>this.handleName(e)} />
+                <input id = "name" type="text" name="username" placeholder="usuario" onChange={(e)=>this.handleName(e)} />
               </div>
 
               {/*Input password*/}
               <div className="form-group">
                 <label htmlFor="password">Contraseña</label>
-                <input type="password" name="password" placeholder="contraseña" onChange={(e)=>this.handlePassword(e)} />
+                <input id = "password" type="password" name="password" placeholder="contraseña" onChange={(e)=>this.handlePassword(e)} />
               </div>
 
           </div>

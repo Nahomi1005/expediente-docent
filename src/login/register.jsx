@@ -102,6 +102,7 @@ export class Register extends React.Component {
 
     //Manejo de input email
     handleEmail(e) { 
+      this.validarEmail(e.target.value);
       this.setState({email: e.target.value.toUpperCase()}) 
     }
 
@@ -133,7 +134,7 @@ export class Register extends React.Component {
           await this.expedienteService.join(this.state.name, this.state.email, this.state.password, this.state.account);
           
           //Notifica registro exitoso
-          this.mostrarToast("mitoastRegistrado")
+          this.mostrarToast("mitoastRegistrado");
 
         } else {
 
@@ -148,6 +149,37 @@ export class Register extends React.Component {
      let joined = await (this.expedienteService.userJoined(this.state.account));
      return joined
     }
+
+  //VALIDAR CAMPOS
+        //Validar Email
+        async validarEmail(elemento){
+
+          var texto = elemento;
+          var regex = /^[-\w.%+]{1,64}@(?:[A-Z0-9-]{1,63}\.){1,125}[A-Z]{2,63}$/i;
+          
+          if (!regex.test(texto)) {
+              //Notifica eail invalido
+
+              this.deshabilitar("btnRegistrar");
+             
+          } else {
+            this.habilitar("btnRegistrar");
+            console.log("EMAIL CORRECTO");
+          }
+        
+        }
+
+        //Deshabilitar boton
+        async deshabilitar(id){
+          var boton = document.getElementById(id);
+          boton.disabled= true;
+        }
+
+         //Habilitar boton
+         async habilitar(id){
+          var boton = document.getElementById(id);
+          boton.disabled= false;
+        }
 
   render() {
     return (
@@ -168,6 +200,20 @@ export class Register extends React.Component {
                       </div>  
 
                   </div>
+
+                  {/*Evento para alertar de carga efectiva*/}
+                 <div class="alert alert-success" role="alert" id="mitoastEmail" aria-live="assertive" aria-atomic="true" className="toast">
+
+                      <div class="toast-header">
+
+                              {/*Icono / Logo de la Aplicación */}
+                              <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                              {/*Nombre del evento */} 
+                              <strong>&nbsp;Verifique email&nbsp;</strong>
+                      </div>  
+
+                </div>
 
                 {/*Header del Login*/}
                 <div className="header"></div>
@@ -192,13 +238,13 @@ export class Register extends React.Component {
                                 {/*Input email*/}
                                 <div className="form-group">
                                   <label htmlFor="email">Email</label>
-                                  <input type="text" name="email" placeholder="email" onChange={(e)=>this.handleEmail(e)}/>
+                                  <input type="email" name="email" placeholder="email@" onChange={(e)=>this.handleEmail(e)}/>
                                 </div>
 
                                 {/*Input password*/}
                                 <div className="form-group">
-                                   <label htmlFor="password">Contraseña</label>
-                                   <input type="text" name="password" placeholder="contraseña" onChange={(e)=>this.handlePassword(e)}/>
+                                   <label htmlFor="password">Password</label>
+                                   <input type="text" name="password" placeholder="password" onChange={(e)=>this.handlePassword(e)}/>
                                 </div>
                           </div>
                           
@@ -208,7 +254,7 @@ export class Register extends React.Component {
                 <div className="footer">
 
                       {/*Botón Submit*/}
-                      <button type="button" className="btnLogin" onClick={(e) => this.handleSubmit(e)}>
+                      <button id = "btnRegistrar" type="button" className="btnLogin" onClick={(e) => this.handleSubmit(e)}>
                            Registrar
                       </button>
                 </div>

@@ -4,7 +4,7 @@ import { Navbar,  NavbarBrand, Nav, NavItem, NavLink, Row, Col, Container} from 
 import brand from './brand.png';
 import ipfs from './ipfs';
 import Curriculum from "./Curriculum.json";
-import Aspirante from "./Aspirante.json"
+import Aspirante from "./Aspirante.json";
 import Web3 from 'web3';
 import {ExpedienteService} from "./expedienteService.js";
 import { Login, Register } from "./login/index";
@@ -43,9 +43,12 @@ class App extends React.Component {
   //Función de React que permite llamar otra función antes de render.
   //Actualización de componentWillMount()
   async componentDidMount() {
-    await this.loadWeb3();
-    await this.loadBlockchainData();
-
+    try{
+        await this.loadWeb3();
+        await this.loadBlockchainData();
+    } catch (e) {
+     console.log("No se encuentra instalado Metamask");
+     }
     //login
     //Add .right by default
     this.rightSide.classList.add("right");
@@ -73,8 +76,10 @@ class App extends React.Component {
 
           } if (window.web3) {
               window.web3 = new Web3(window.web3.currentProvider)
+
           } else {
-            window.alert('¡No tienes Metamask Instalado!\n Por favor, instala Metamask. https://metamask.io/')
+
+            //window.alert('¡No tienes Metamask Instalado!\n Por favor, instala Metamask. https://metamask.io/')
           }
           this.setState({web3: window.web3}); //Habilita el web3
 
@@ -98,15 +103,14 @@ class App extends React.Component {
   //Inicializa Web3 para conectar con la Blockchain
   //Creamos instancia del contrato Curriculum
   async loadBlockchainData() { 
-    
-  //Tenemos we3
-   const web3 = window.web3;
+    try {
+    //Tenemos we3
+    const web3 = window.web3;
 
    //Obtener la cuenta
    const accounts = await web3.eth.getAccounts()
     this.setState({account: accounts[0]})
-    console.log(accounts, "CUENTA")
-
+    console.log(this.state.account, "CUENTA")
 
      //Obtener la networkID
     const networkId = await web3.eth.net.getId();
@@ -159,7 +163,9 @@ class App extends React.Component {
     } else {
         window.alert('El Smart Contract no ha sido desplegado en la red.')
     }
-
+  } catch (e){
+    console.log("No se encuentra instalado Metamask");
+  }
   }
 
 
@@ -261,9 +267,12 @@ class App extends React.Component {
 
 //Ejecuta todos los métodos para la intefaz
   async load() {
+    try{
       this.getBalance(); //Cantidad de Ether en la cta de Ethereum
       this.getFiles(); //Desplegar los archivos que va a cargar el aspirante
-
+    } catch(e){
+      console.log("No se encuentra instalado Metamask");
+    }
      // this.getRefundableEther();
     }
 
@@ -292,12 +301,15 @@ class App extends React.Component {
 
  //Obtener el balance de la cuenta de Metamask
  async getBalance() {
-    
-  let weiBalance = await this.state.web3.eth.getBalance(this.state.account);
+  try{
+      let weiBalance = await this.state.web3.eth.getBalance(this.state.account);
 
-  this.setState({
-      balance: this.converter(weiBalance)
-  });
+      this.setState({
+          balance: this.converter(weiBalance)
+      });
+  } catch(e){
+    console.log("No se encuentra instalado Metamask");
+  }
 }
 
 
@@ -389,6 +401,26 @@ changeState() {
   }
   this.setState(prevState => ({ isLogginActive: !prevState.isLogginActive }));
 }
+  //Ocultar Secciones
+  async ocultarSeccion(id) {
+    var panel = document.getElementById(id);
+    panel.className = "ocultar";
+  }
+
+    //Mostrar Login
+      async mostrarLogin(id) {
+        var panel = document.getElementById(id);
+        panel.className = "mostrar";
+      }
+
+    //CerrarSesión
+    CerrarSesion(){
+      this.ocultarSeccion("archivos");
+      this.ocultarSeccion("archivosMembrete");
+      this.ocultarSeccion("sesionCerrada");
+      this.mostrarLogin("loginApp");
+      this.mostrarToast("cerrarSesion");
+    }
 
 render() {
   const { isLogginActive } = this.state;
@@ -405,8 +437,39 @@ render() {
 
              {/* Cuerpo de la Web*/}
               <div className= "Container">
-              
-                      {/*EVENTOS*/}
+
+        {/*EVENTOS*/}
+                    {/*METAMASK*/}
+                      {/*Evento para alertar si Metamask no está instalado*/}
+                      <div class="alert alert-success" role="alert" id="mitoastNoMetamask" aria-live="assertive" aria-atomic="true" className="toast">
+
+                              <div class="toast-header">
+
+                                  {/*Icono / Logo de la Aplicación */}
+                                    <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                  {/*Nombre del evento */} 
+                                    <strong>&nbsp;¡No tienes Metamask Instalado!</strong>\n Por favor, instala Metamask. https://metamask.io/'&nbsp;
+                              </div>  
+
+                      </div>
+
+                      {/*CERRAR SESION*/}
+                      {/*Evento para alertar de sesión cerrada*/}
+                      <div class="alert alert-success" role="alert" id="cerrarSesion" aria-live="assertive" aria-atomic="true" className="toast">
+
+                              <div class="toast-header">
+
+                                  {/*Icono / Logo de la Aplicación */}
+                                    <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                  {/*Nombre del evento */} 
+                                    <strong>&nbsp;¡Cerrando Sesión!</strong>&nbsp;
+                              </div>  
+
+                      </div>
+
+                      {/*EVENTOS ARCHIVOS*/}
 
                               {/*Evento para alertar de carga efectiva*/}
                                <div class="alert alert-success" role="alert" id="mitoast" aria-live="assertive" aria-atomic="true" className="toast">
@@ -448,8 +511,62 @@ render() {
                                       </div>  
 
                                 </div>
+
+                       {/*EVENTOS LOGIN*/}
+
+                                 {/*Evento para alertar de carga efectiva*/}
+                                 <div class="alert alert-success" role="alert" id="mitoastRegistrado" aria-live="assertive" aria-atomic="true" className="toast">
+
+                                      <div class="toast-header">
+
+                                            {/*Icono / Logo de la Aplicación */}
+                                            <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                            {/*Nombre del evento */} 
+                                            <strong>&nbsp;¡Registrado!&nbsp;</strong>
+                                      </div>  
+                                </div>
+
+                                {/*Evento para alertar de carga efectiva*/}
+                                <div class="alert alert-success" role="alert" id="mitoastLoginOn" aria-live="assertive" aria-atomic="true" className="toast">
+
+                                      <div class="toast-header">
+
+                                            {/*Icono / Logo de la Aplicación */}
+                                            <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                            {/*Nombre del evento */} 
+                                            <strong>&nbsp;¡Iniciando Sesión!&nbsp;</strong>
+                                      </div>  
+                                </div>
+
+                                {/*Evento para alertar de carga efectiva*/}
+                                <div class="alert alert-success" role="alert" id="mitoastLoginWrong" aria-live="assertive" aria-atomic="true" className="toast">
+
+                                        <div class="toast-header">
+
+                                              {/*Icono / Logo de la Aplicación */}
+                                              <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                              {/*Nombre del evento */} 
+                                              <strong>&nbsp;¡Datos Equivocados!&nbsp;</strong>
+                                        </div>  
+                                </div>
+
+                                {/*Evento para notificar de Usuario eliminado*/}
+                                <div class="alert alert-success" role="alert" id="mitoastUserEliminado" aria-live="assertive" aria-atomic="true" className="toast">
+                                      <div class="toast-header">
+
+                                            {/*Icono / Logo de la Aplicación */}
+                                            <img src={brand} width="20" height="20"  alt="Uneg"/>
+
+                                              {/*Nombre del evento */} 
+                                              <strong>&nbsp;Perfecto ¡Registre Ahora!&nbsp;</strong>
+                                      </div>  
+                                      {/*<strong>{this.state.eliminado}</strong>*/}
+                                </div>
                       
-                      {/*PRINCIPAL */}
+        {/*PRINCIPAL */}
 
                        {/* Menu principal de la Web*/}
                         <Navbar color="light" light expand="md">
@@ -468,15 +585,20 @@ render() {
                                     </NavItem>*/}
 
                                     {/*Cantidad de Usuarios */}
-                                    <NavItem>
-                                        <NavLink href="#" onClick={() => this.totalUsers()}> Usuarios</NavLink>
-                                    </NavItem>
-                                  
-                                </Nav>
-                        </Navbar> 
+                                   {/* <NavItem>
+                                          <NavLink href="#" onClick={() => this.totalUsers()}> Usuarios</NavLink>
+                                        </NavItem>
+                                    */} 
 
+                                        <NavItem>
+                                          <NavLink id ="sesionCerrada" href="#" onClick={() => this.CerrarSesion()}> Cerrar Sesión</NavLink>
+                                        </NavItem>
+                                </Nav>
+                        </Navbar>  
+
+        {/*LOGIN*/}
                         {/*LOGIN de la página*/}
-                        <div className = "App-login">
+                        <div className = "App-login" id = "loginApp">
                                 <div className = "login">
                                       <div className = "containerLogin" ref={ref => (this.container = ref)}>
                                           {isLogginActive && (<Login containerRef={ref => (this.current = ref)} />)}
@@ -487,10 +609,11 @@ render() {
                                 
                                 </div>
                         </div>
-                            {/*LOGIN de la página*/}
+                        {/*LOGIN de la página*/}
 
-                            {/* Sección Principal*/}
-                            <div className="pure-g">
+        {/*ARCHIVOS*/}
+                            {/*Gestión de Archivos*/}
+                            <div className="pure-g" id = "archivosMembrete">
                                   <div className= "pure-u-1-1">
                                         <h1 className= "titulo-h1">Registro del Expediente Docente</h1>
                                         <p className= "texto-centrado">Estas credenciales se encontrarán en la red IPFS y la red de Ethereum</p>
@@ -502,74 +625,74 @@ render() {
                                   </div>
                             </div>
 
-                        <Container className="container-fluid" >
+                        <Container className="container-fluid" id = "archivos">
 
-                            {/*Plantilla de cargar, ver, eliminar archivos del expediente */}
-                            <Row className= "row">
-                                <Col sm className= "col"> 
+                                    {/*Plantilla de cargar, ver, eliminar archivos del expediente */}
+                                    <Row className= "row">
+                                        <Col sm className= "col"> 
 
-                                      {/* Recuperar el balance de la cuenta*/}
-                                      <span><strong>Balance: </strong> {this.state.balance} <strong>ETH</strong></span>
-
-                                </Col>
-                            </Row>
-
-                            <Row className= "row">
-                                  <Col sm className= "col">
-
-                                      {/* Mostrar los botones para subir los archivos*/} 
-                                      <div className= "divFiles">
-
-                                            {/* Hacemos un mapeo para recorrer el estado files[],
-                                                que llenamos en getFiles(),
-                                                con los valores del contrato*/}
-
-                                            {this.state.files.map((file, i) => {
-
-                                                  return <div  key = {i}> {/* El índice identifica cada <div> con Key*/} 
-                                                            
-                                                             
-                                                             <div className= "divFiles-in">
-                                                                    <span className= "texto-izq">{file.name} {/*- cost: {this.converter(file.price)} */}</span>
-                                                                    <label htmlFor="inputFile" className="btn btn-light btn-outline-primary btn-sm btn-css">Cargar</label>
-                                                                    <input type='file' id="inputFile" className="input-file" onChange={(event) => this.captureFile(event)} />
-                                                                    <button className="btn btn-light btn-outline-secondary btn-sm btn-css" onClick={(event) => this.onSubmit(event, i)}>Enviar</button>                                   
-                                                             </div>
-
-                                                          </div>
-
-
-                                                  })}
-                                                  
-                                      </div>
-                                      
-                                  </Col>
-                           </Row>
- 
-                            <Row className= "row ">
-
-                                       <Col sm  className= "col divFiles-in-R">
-                                       
-                                            {this.state.aspiranteFiles.map((file, i) => {
-                                                    return <div key = {i} className= "divFiles-in divFiles-in-R-div"> 
-                                                            {file.name} {/*- cost: {this.converter(file.price)} ETH - hash: */}
-                                                            <img className= "img-R" src={`https://ipfs.io/ipfs/${file.hashFile}`} alt=""/>
-                                                            <button className="btn btn-light btn-outline-danger btn-sm btn-Right" onClick={() => this.deleteFile(this.state.account, i)}>Eliminar</button>
-                                                    </div>
-                                             })}
+                                              {/* Recuperar el balance de la cuenta*/}
+                                              <span><strong>Balance: </strong> {this.state.balance} <strong>ETH</strong></span>
 
                                         </Col>
+                                    </Row>
 
-                            </Row>
+                                    <Row className= "row">
+                                          <Col sm className= "col">
 
-                            <Row>
+                                              {/* Mostrar los botones para subir los archivos*/} 
+                                              <div className= "divFiles">
 
-                              <Col>
-                              <button className="btn btn-light btn-outline-success btn-sm btn-css" onClick={(event) => this.getAspiranteFiles()}>Mostrar</button>
-                              <button className="btn btn-light btn-outline-secondary btn-sm btn-css" onClick={(event) => this.ocultarFiles()}>Ocultar</button>
-                              </Col>
+                                                    {/* Hacemos un mapeo para recorrer el estado files[],
+                                                        que llenamos en getFiles(),
+                                                        con los valores del contrato*/}
 
-                            </Row>
+                                                    {this.state.files.map((file, i) => {
+
+                                                          return <div  key = {i}> {/* El índice identifica cada <div> con Key*/} 
+                                                                    
+                                                                    
+                                                                    <div className= "divFiles-in">
+                                                                            <span className= "texto-izq">{file.name} {/*- cost: {this.converter(file.price)} */}</span>
+                                                                            <label htmlFor="inputFile" className="btn btn-light btn-outline-primary btn-sm btn-css">Cargar</label>
+                                                                            <input type='file' id="inputFile" className="input-file" onChange={(event) => this.captureFile(event)} />
+                                                                            <button className="btn btn-light btn-outline-secondary btn-sm btn-css" onClick={(event) => this.onSubmit(event, i)}>Enviar</button>                                   
+                                                                    </div>
+
+                                                                  </div>
+
+
+                                                          })}
+                                                          
+                                              </div>
+                                              
+                                          </Col>
+                                  </Row>
+        
+                                    <Row className= "row ">
+
+                                              <Col sm  className= "col divFiles-in-R">
+                                              
+                                                    {this.state.aspiranteFiles.map((file, i) => {
+                                                            return <div key = {i} className= "divFiles-in divFiles-in-R-div"> 
+                                                                    {file.name} {/*- cost: {this.converter(file.price)} ETH - hash: */}
+                                                                    <img className= "img-R" src={`https://ipfs.io/ipfs/${file.hashFile}`} alt=""/>
+                                                                    <button className="btn btn-light btn-outline-danger btn-sm btn-Right" onClick={() => this.deleteFile(this.state.account, i)}>Eliminar</button>
+                                                            </div>
+                                                    })}
+
+                                                </Col>
+
+                                    </Row>
+
+                                    <Row>
+
+                                      <Col>
+                                      <button className="btn btn-light btn-outline-success btn-sm btn-css" onClick={(event) => this.getAspiranteFiles()}>Mostrar</button>
+                                      <button className="btn btn-light btn-outline-secondary btn-sm btn-css" onClick={(event) => this.ocultarFiles()}>Ocultar</button>
+                                      </Col>
+
+                                    </Row>
 
                         </Container>
               </div>

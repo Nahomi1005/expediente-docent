@@ -172,7 +172,7 @@
 
 /*Eventos*/
 #mitoast, #mitoastEliminado, #mitoastEnviado, #mitoastRegistrado, #mitoastUserEliminado, 
-#mitoastLoginOn, #mitoastLoginWrong{
+#mitoastLoginOn, #mitoastLoginWrong, #mitoastNoMetamask, #cerrarSesion, #mitoastEmail{
   visibility: hidden;
   position: fixed;
   z-index: 1;
@@ -192,13 +192,14 @@
   opacity: 1;
 }
 
-#mitoastLoginWrong{
+#mitoastLoginWrong, #mitoastEmail{
   border-color: #a72839;
-  background-color: #28a745;
+  background-color: #a72839;
 }
 
 #mitoast.mostrar, #mitoastEliminado.mostrar, #mitoastEnviado.mostrar, 
-#mitoastRegistrado.mostrar, #mitoastUserEliminado.mostrar, #mitoastLoginOn.mostrar, #mitoastLoginWrong.mostrar{
+#mitoastRegistrado.mostrar, #mitoastUserEliminado.mostrar, #mitoastLoginOn.mostrar, #mitoastLoginWrong.mostrar,
+#mitoastNoMetamask.mostrar, #cerrarSesion.mostrar, #mitoastEmail.mostrar{
   visibility: visible;
   -webkit-animation: fadein 0.5s, fadeout 0.5s 4.6s;
   animation: fadein 0.5s, fadeout 0.5s 4.6s;
@@ -334,3 +335,51 @@
 
   
 }
+
+
+//Ocultar Secciones
+#loginApp.ocultar{
+  visibility: hidden;
+  position: absolute;
+  left:30%;
+  opacity: 0;
+  transition: visibility 0s 1s, opacity 1s ease-out;
+}
+
+#loginApp.mostrar{
+  visibility: visible;
+  position: absolute;
+  left:30%;
+  opacity: 1;
+  transition: opacity 1s ease-in;
+}
+
+  #archivos, #archivosMembrete{
+    visibility: hidden;
+    opacity: 0;
+    position:relative;
+    margin-left: 5%;
+    margin-right: 5%;
+    //position: fixed;
+    //top: 30%;
+    //width: 100%;
+  /*  position: fixed;
+    top: 20%;
+    width: 100%;*/
+  }
+
+  #archivos.ocultar, #archivosMembrete.ocultar,#sesionCerrada.ocultar{
+    visibility:hidden;
+  }
+
+  #sesionCerrada {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  //Mostrar Secciones
+  #archivos.visible, #archivosMembrete.visible, #sesionCerrada.visible{
+    visibility: visible;
+    animation: fadein 0.8s;
+    opacity: 1;
+  }
